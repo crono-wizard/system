@@ -40,11 +40,15 @@
     }
     header .logo-icon {
       width: 52px; height: 52px;
-      background: var(--gold);
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px;
+      overflow: hidden;
       flex-shrink: 0;
+      border: 2px solid var(--gold);
+    }
+    header .logo-icon img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
     }
     header .brand h1 {
       font-family: 'Playfair Display', serif;
@@ -281,7 +285,7 @@
 <body>
 
 <header>
-  <div class="logo-icon">🍦</div>
+  <div class="logo-icon"><img src="https://instagram.fpbc2-3.fna.fbcdn.net/v/t51.2885-19/610977075_17852859654609861_1138073647645955107_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fpbc2-3.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QHB8ruW1_gsmWZ_mvm1iDyTCfioINPbNLi_9Kk7ERqbTq4g7G7MuSThuOEystqveaFbe5DsnzIyWsWO0yszSxE9&_nc_ohc=PsRL7BK5LZwQ7kNvwE40tQv&_nc_gid=K8fYv3r1Tx23yxZ85_MHdw&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_Aft0TLZVFdN23gwoU11HZ1rmOtwOcm5AwphAnrY5MdWj5w&oe=69A0118B&_nc_sid=8b3546" alt="BUZA logo" /></div>
   <div class="brand">
     <h1>BUZA</h1>
     <p>Greek Frozen Yogurt</p>
@@ -339,12 +343,20 @@
       </div>
 
       <div id="sec-extra" style="display:none">
-        <div class="slabel" style="margin-top:14px">Toppings extra adicionales</div>
-        <div class="counter">
-          <button id="minus-extra">−</button>
-          <div class="count" id="qty-extra">0</div>
-          <button id="plus-extra">+</button>
-          <span class="hint" id="hint-extra"></span>
+        <div class="slabel" style="margin-top:14px">Topping extra adicional</div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+          <div class="counter">
+            <button id="minus-extra-dul">−</button>
+            <div class="count" id="qty-extra-dul">0</div>
+            <button id="plus-extra-dul">+</button>
+            <span class="hint">Endulzado — +$10 c/u</span>
+          </div>
+          <div class="counter">
+            <button id="minus-extra-san">−</button>
+            <div class="count" id="qty-extra-san">0</div>
+            <button id="plus-extra-san">+</button>
+            <span class="hint">Sin azúcar — +$15 c/u</span>
+          </div>
         </div>
       </div>
 
@@ -449,8 +461,9 @@ function makeCounter(minId, plusId, cntId, min, max) {
     calcularPrecio();
   };
 }
-makeCounter('minus-top',   'plus-top',   'qty-top',   1, 10);
-makeCounter('minus-extra', 'plus-extra', 'qty-extra', 0, 10);
+makeCounter('minus-top',       'plus-top',       'qty-top',       1, 10);
+makeCounter('minus-extra-dul', 'plus-extra-dul', 'qty-extra-dul', 0, 10);
+makeCounter('minus-extra-san', 'plus-extra-san', 'qty-extra-san', 0, 10);
 
 /* ── CALCULAR PRECIO ── */
 function calcularPrecio() {
@@ -464,26 +477,27 @@ function calcularPrecio() {
     return 0;
   }
 
-  const qtyExtra = parseInt(document.getElementById('qty-extra')?.textContent || '0');
-  let base, extraMonto = 0, baseLabel;
+  const qtyExtraDul = parseInt(document.getElementById('qty-extra-dul')?.textContent || '0');
+  const qtyExtraSan = parseInt(document.getElementById('qty-extra-san')?.textContent || '0');
+  let base, extraMonto = 0;
 
   if (!tipoTop || tipoTop === 'sin') {
     base = P.base[tam];
-    baseLabel = 'BUZA ' + tam + ' — Sin toppings';
   } else {
     base = P.conTop[tipoTop][tam];
-    const inc = P.topIncluidos[tipoTop][tam];
-    const tipNom = tipoTop === 'dulce' ? 'endulzados' : 'sin azúcar';
-    baseLabel = 'BUZA ' + tam + ' — ' + inc + ' toppings ' + tipNom;
-    extraMonto = qtyExtra * P.extra[tipoTop];
+    extraMonto = (qtyExtraDul * P.extra.dulce) + (qtyExtraSan * P.extra.sano);
   }
 
   const total = base + extraMonto;
-  let html = '<div class="row"><span>' + baseLabel + '</span><span>$' + base + '.00</span></div>';
-  if (qtyExtra > 0) {
-    const tipNom = tipoTop === 'dulce' ? 'endulzados' : 'sin azúcar';
-    html += '<div class="row"><span>Extras ' + tipNom + ' (×' + qtyExtra + ')</span><span>+$' + extraMonto + '.00</span></div>';
-  }
+  const inc = (!tipoTop || tipoTop === 'sin') ? null : P.topIncluidos[tipoTop][tam];
+  const tipNomBase = (!tipoTop || tipoTop === 'sin') ? 'Sin toppings'
+    : (inc + ' toppings ' + (tipoTop === 'dulce' ? 'endulzados' : 'sin azúcar'));
+
+  let html = '<div class="row"><span>BUZA ' + tam + ' — ' + tipNomBase + '</span><span>$' + base + '.00</span></div>';
+  if (qtyExtraDul > 0)
+    html += '<div class="row"><span>Extras endulzados (×' + qtyExtraDul + ')</span><span>+$' + (qtyExtraDul * P.extra.dulce) + '.00</span></div>';
+  if (qtyExtraSan > 0)
+    html += '<div class="row"><span>Extras sin azúcar (×' + qtyExtraSan + ')</span><span>+$' + (qtyExtraSan * P.extra.sano) + '.00</span></div>';
   html += '<div class="row total-row"><span>TOTAL</span><span>$' + total + '.00</span></div>';
   box.innerHTML = html;
   return total;
@@ -491,9 +505,9 @@ function calcularPrecio() {
 
 /* ── GENERAR TICKET ── */
 function generarTicket() {
-  const tipo    = document.querySelector('input[name="tipo"]:checked')?.value;
-  const tam     = document.querySelector('input[name="tam"]:checked')?.value;
-  const tipoTop = document.querySelector('input[name="tipo-top"]:checked')?.value;
+  const tipo      = document.querySelector('input[name="tipo"]:checked')?.value;
+  const tam       = document.querySelector('input[name="tam"]:checked')?.value;
+  const tipoTop   = document.querySelector('input[name="tipo-top"]:checked')?.value;
 
   if (!tipo || !tam) {
     document.getElementById('alerta').style.display = 'block';
@@ -501,75 +515,87 @@ function generarTicket() {
   }
   document.getElementById('alerta').style.display = 'none';
 
-  const qtyTop   = parseInt(document.getElementById('qty-top')?.textContent || '0');
-  const qtyExtra = parseInt(document.getElementById('qty-extra')?.textContent || '0');
-  const nota     = document.getElementById('nota').value.trim();
+  const qtyTop      = parseInt(document.getElementById('qty-top')?.textContent || '0');
+  const qtyExtraDul = parseInt(document.getElementById('qty-extra-dul')?.textContent || '0');
+  const qtyExtraSan = parseInt(document.getElementById('qty-extra-san')?.textContent || '0');
+  const nota        = document.getElementById('nota').value.trim();
 
   let base = 0, extraMonto = 0;
   if (!tipoTop || tipoTop === 'sin') {
     base = P.base[tam];
   } else {
     base = P.conTop[tipoTop][tam];
-    extraMonto = qtyExtra * P.extra[tipoTop];
+    extraMonto = (qtyExtraDul * P.extra.dulce) + (qtyExtraSan * P.extra.sano);
   }
   const total = base + extraMonto;
 
-  const now   = new Date();
-  const fecha = now.toLocaleDateString('es-MX');
-  const hora  = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  const now      = new Date();
+  const fecha    = now.toLocaleDateString('es-MX');
+  const hora     = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
   const folioStr = String(folio).padStart(3, '0');
 
   const W = '================================';
   const S = '--------------------------------';
 
-  let t = '';
-  t += '             BUZA\n';
-  t += '      GREEK FROZEN YOGURT\n';
-  t += W + '\n';
-  t += 'Folio: #' + folioStr + '  ' + fecha + ' ' + hora + '\n';
-  t += W + '\n';
-  t += 'Tipo  : ' + tipo + '\n';
-  t += 'Tamano: ' + tam + '\n';
+  function construirTicket(etiqueta) {
+    let t = '';
+    t += '             BUZA\n';
+    t += '      GREEK FROZEN YOGURT\n';
+    if (etiqueta) t += '       ' + etiqueta + '\n';
+    t += W + '\n';
+    t += 'Folio: #' + folioStr + '  ' + fecha + ' ' + hora + '\n';
+    t += W + '\n';
+    t += 'Tipo  : ' + tipo + '\n';
+    t += 'Tamano: ' + tam + '\n';
 
-  if (!tipoTop || tipoTop === 'sin') {
-    t += 'Topping: Sin toppings\n';
-  } else {
-    const tipNom = tipoTop === 'dulce' ? 'Endulzados' : 'Sin azucar';
-    t += 'Topping: ' + tipNom + ' (' + qtyTop + ' inc.)\n';
-    if (qtyExtra > 0) {
-      t += S + '\n';
-      const pxe = P.extra[tipoTop];
-      t += 'Extra ' + (tipoTop === 'dulce' ? 'dulce' : 's/azucar') + ': ';
-      t += qtyExtra + ' x $' + pxe + ' = $' + (qtyExtra * pxe) + '.00\n';
+    if (!tipoTop || tipoTop === 'sin') {
+      t += 'Topping: Sin toppings\n';
+    } else {
+      const tipNom = tipoTop === 'dulce' ? 'Endulzados' : 'Sin azucar';
+      t += 'Topping: ' + tipNom + ' (' + qtyTop + ' inc.)\n';
+      if (qtyExtraDul > 0 || qtyExtraSan > 0) {
+        t += S + '\n';
+        if (qtyExtraDul > 0)
+          t += 'Extra dulce  : ' + qtyExtraDul + ' x $10 = $' + (qtyExtraDul * 10) + '.00\n';
+        if (qtyExtraSan > 0)
+          t += 'Extra s/azucar: ' + qtyExtraSan + ' x $15 = $' + (qtyExtraSan * 15) + '.00\n';
+      }
     }
+
+    if (nota) { t += S + '\n'; t += 'Nota: ' + nota + '\n'; }
+    t += W + '\n';
+    t += 'TOTAL:          $' + total + '.00\n';
+    t += W + '\n';
+    t += '  Gracias por tu preferencia!\n';
+    t += '        Vuelve pronto!\n';
+    t += '\n\n\n\n\n\n\n\n';
+    return t;
   }
 
-  if (nota) {
-    t += S + '\n';
-    t += 'Nota: ' + nota + '\n';
-  }
+  const ticketCliente = construirTicket('');
+  document.getElementById('ticket-preview').textContent = ticketCliente;
 
-  t += W + '\n';
-  t += 'TOTAL:          $' + total + '.00\n';
-  t += W + '\n';
-  t += '  Gracias por tu preferencia!\n';
-  t += '        Vuelve pronto!\n';
-  t += '\n\n\n';
-
-  document.getElementById('ticket-preview').textContent = t;
-
-  const ticketHtml = '<pre style="font-family:\'Courier New\',monospace;font-size:9pt;line-height:1.45;width:46mm;white-space:pre-wrap;word-break:break-word;">' + escHtml(t) + '</pre>';
-  // Ticket cliente + corte + ticket caja
-  const cajaLinea = '- - - COPIA CAJA - - -\n';
-  const tCaja = t.replace('GREEK FROZEN YOGURT\n', 'GREEK FROZEN YOGURT\n' + cajaLinea);
-  const cajaHtml = '<pre style="font-family:\'Courier New\',monospace;font-size:9pt;line-height:1.45;width:46mm;white-space:pre-wrap;word-break:break-word;">' + escHtml(tCaja) + '</pre>';
-  const area = document.getElementById('print-area');
-  area.innerHTML = ticketHtml + cajaHtml;
-  window.print();
+  // Imprimir ticket cliente
+  imprimirTexto(ticketCliente, () => {
+    // Preguntar si imprimir copia de caja
+    setTimeout(() => {
+      const imprimir = window.confirm('¿Imprimir copia para caja?');
+      if (imprimir) {
+        imprimirTexto(construirTicket('--- COPIA CAJA ---'), null);
+      }
+    }, 400);
+  });
 
   folio++;
   localStorage.setItem('buza_folio', folio);
   setTimeout(actualizarFolio, 600);
+}
+
+function imprimirTexto(texto, callback) {
+  const area = document.getElementById('print-area');
+  area.innerHTML = '<pre style="font-family:\'Courier New\',monospace;font-size:9pt;line-height:1.45;width:46mm;white-space:pre-wrap;word-break:break-word;">' + escHtml(texto) + '</pre>';
+  window.print();
+  if (callback) callback();
 }
 
 function escHtml(s) {
@@ -580,11 +606,11 @@ function escHtml(s) {
 function limpiarForm() {
   document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
   document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
-  document.getElementById('qty-top').textContent   = '2';
-  document.getElementById('qty-extra').textContent = '0';
+  document.getElementById('qty-top').textContent       = '2';
+  document.getElementById('qty-extra-dul').textContent = '0';
+  document.getElementById('qty-extra-san').textContent = '0';
   document.getElementById('nota').value = '';
-  ['sec-dulce','sec-sano','sec-qty-top','sec-extra','alerta'].forEach(id => {
-    document.getElementById(id).style.display = 'none';
+  ['sec-dulce','sec-sano','sec-qty-top','sec-extra','alerta'].forEach(id => {    document.getElementById(id).style.display = 'none';
   });
   document.getElementById('desglose').innerHTML =
     '<div class="row"><span>Selecciona tipo, tamaño y toppings</span><span></span></div>';
