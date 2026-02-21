@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUZA — Generador de Tickets</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy:   #2B5480;
+      --navy-d: #1a3452;
+      --navy-l: #3d6fa0;
+      --cream:  #f5f0e8;
+      --gold:   #c9a84c;
+      --green:  #3a8a5c;
+      --white:  #ffffff;
+      --text:   #1a1a2e;
+      --muted:  #7a8fa6;
+      --border: #d4e0ee;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--navy);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(43,84,128,.35);
+    }
+    header .logo-icon {
+      width: 52px; height: 52px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+    header .brand h1 {
+      font-family: 'Playfair Display', serif;
+      color: var(--white);
+      font-size: 2rem;
+      letter-spacing: 4px;
+      line-height: 1;
+    }
+    header .brand p {
+      color: rgba(255,255,255,.55);
+      font-size: .68rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    header .sys-label {
+      margin-left: auto;
+      color: rgba(255,255,255,.4);
+      font-size: .78rem;
+      letter-spacing: .5px;
+    }
+
+    /* ── LAYOUT ── */
+    .wrapper {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 20px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 28px;
+      align-items: start;
+    }
+    @media(max-width: 740px) {
+      .wrapper { grid-template-columns: 1fr; }
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 2px 16px rgba(43,84,128,.08);
+      border: 1px solid var(--border);
+    }
+    .card h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--navy);
+      font-size: 1.15rem;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--navy);
+    }
+
+    /* ── SECTION LABEL ── */
+    .slabel {
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 18px 0 8px;
+    }
+
+    /* ── RADIO / CHECKBOX CHIPS ── */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip input, .tchip input { display: none; }
+    .chip label {
+      display: block;
+      padding: 8px 18px;
+      border-radius: 50px;
+      border: 2px solid var(--border);
+      font-size: .87rem;
+      cursor: pointer;
+      transition: all .18s;
+      font-weight: 500;
+      user-select: none;
+      color: var(--text);
+    }
+    .chip input:checked + label {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: var(--white);
+    }
+    .chip label:hover { border-color: var(--navy-l); color: var(--navy); }
+
+    /* topping chips */
+    .tchip label {
+      display: block;
+      padding: 7px 14px;
+      border-radius: 50px;
+      border: 2px solid var(--border);
+      font-size: .83rem;
+      cursor: pointer;
+      transition: all .18s;
+      user-select: none;
+    }
+    .tchip.dulce input:checked + label {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #fff; font-weight: 600;
+    }
+    .tchip.sano input:checked + label {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff; font-weight: 600;
+    }
+    .tchip label:hover { border-color: var(--navy-l); }
+
+    /* ── COUNTER ── */
+    .counter { display: flex; align-items: center; gap: 12px; }
+    .counter button {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--navy);
+      background: transparent;
+      color: var(--navy);
+      font-size: 1.2rem;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all .15s;
+      line-height: 1;
+      font-family: inherit;
+    }
+    .counter button:hover { background: var(--navy); color: #fff; }
+    .counter .count {
+      font-size: 1.3rem; font-weight: 600;
+      width: 34px; text-align: center;
+      color: var(--navy);
+    }
+    .counter .hint { font-size: .8rem; color: var(--muted); }
+
+    /* ── DESGLOSE PRECIO ── */
+    .info-box {
+      background: #eef4fb;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 8px;
+      font-size: .83rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .info-box .row { display: flex; justify-content: space-between; }
+    .info-box .row.total-row {
+      font-size: 1rem; font-weight: 700;
+      color: var(--navy);
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1.5px solid var(--border);
+    }
+
+    /* ── TEXTAREA ── */
+    textarea {
+      width: 100%; padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: .88rem;
+      font-family: inherit;
+      color: var(--text);
+      transition: border-color .2s;
+      background: var(--cream);
+      resize: vertical;
+      min-height: 60px;
+    }
+    textarea:focus { outline: none; border-color: var(--navy); background: #fff; }
+
+    hr { border: none; border-top: 1.5px solid var(--border); margin: 20px 0; }
+
+    /* ── BTNS ── */
+    .btn {
+      width: 100%; padding: 13px;
+      background: var(--navy); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: .97rem; font-weight: 600;
+      cursor: pointer; margin-top: 16px;
+      transition: background .2s, transform .1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: inherit;
+    }
+    .btn:hover { background: var(--navy-l); }
+    .btn:active { transform: scale(.98); }
+    .btn-ghost {
+      background: transparent;
+      border: 2px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-ghost:hover { border-color: var(--navy); color: var(--navy); background: #eef4fb; }
+
+    /* ── TICKET PREVIEW ── */
+    .ticket-wrap { position: sticky; top: 20px; }
+    .ticket-wrap h3 {
+      font-size: .72rem; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .folio-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--navy); color: #fff;
+      padding: 4px 12px; border-radius: 50px;
+      font-size: .73rem; font-weight: 600;
+      letter-spacing: .5px; margin-bottom: 12px;
+    }
+    #ticket-preview {
+      background: #fff;
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 16px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: .76rem;
+      line-height: 1.55;
+      color: #222;
+      min-height: 180px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .alert {
+      background: #fff3cd; border: 1.5px solid #f0c040;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: .82rem; color: #7a5c00;
+      margin-top: 12px; display: none;
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      @page { size: 48mm auto; margin: 2mm 1mm; }
+      body > * { display: none !important; }
+      #print-area {
+        display: block !important;
+        width: 46mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🍦</div>
+  <div class="brand">
+    <h1>BUZA</h1>
+    <p>Greek Frozen Yogurt</p>
+  </div>
+  <span class="sys-label">Sistema de tickets — Uso interno</span>
+</header>
+
+<div class="wrapper">
+
+  <!-- ══ FORMULARIO ══ -->
+  <div>
+    <div class="card">
+      <h2>🛒 Nueva Orden</h2>
+
+      <!-- TIPO -->
+      <div class="slabel">Tipo de helado</div>
+      <div class="chips">
+        <div class="chip"><input type="radio" name="tipo" id="tp-natural"   value="Natural">   <label for="tp-natural">Natural</label></div>
+        <div class="chip"><input type="radio" name="tipo" id="tp-sabor"     value="Sabor">     <label for="tp-sabor">Sabor</label></div>
+        <div class="chip"><input type="radio" name="tipo" id="tp-combinado" value="Combinado"> <label for="tp-combinado">Combinado</label></div>
+      </div>
+
+      <!-- TAMAÑO -->
+      <div class="slabel">Tamaño</div>
+      <div class="chips">
+        <div class="chip"><input type="radio" name="tam" id="tam-chico"  value="Chico">  <label for="tam-chico">Chico</label></div>
+        <div class="chip"><input type="radio" name="tam" id="tam-grande" value="Grande"> <label for="tam-grande">Grande</label></div>
+      </div>
+
+      <hr>
+
+      <!-- TIPO DE TOPPING -->
+      <div class="slabel">Toppings</div>
+      <div class="chips">
+        <div class="chip"><input type="radio" name="tipo-top" id="tt-sin"   value="sin">   <label for="tt-sin">Sin toppings</label></div>
+        <div class="chip"><input type="radio" name="tipo-top" id="tt-dulce" value="dulce"> <label for="tt-dulce">Endulzados</label></div>
+        <div class="chip"><input type="radio" name="tipo-top" id="tt-sano"  value="sano">  <label for="tt-sano">Sin azúcar</label></div>
+      </div>
+
+      <!-- TOPPINGS ENDULZADOS (sin nombres específicos) -->
+      <div id="sec-dulce" style="display:none"></div>
+
+      <!-- TOPPINGS SIN AZÚCAR (sin nombres específicos) -->
+      <div id="sec-sano" style="display:none"></div>
+
+      <!-- CANTIDAD BASE + EXTRA -->
+      <div id="sec-qty-top" style="display:none">
+        <div class="slabel">Toppings incluidos en el precio</div>
+        <div class="counter">
+          <button id="minus-top">−</button>
+          <div class="count" id="qty-top">2</div>
+          <button id="plus-top">+</button>
+          <span class="hint" id="hint-base">incluidos</span>
+        </div>
+      </div>
+
+      <div id="sec-extra" style="display:none">
+        <div class="slabel" style="margin-top:14px">Toppings extra adicionales</div>
+        <div class="counter">
+          <button id="minus-extra">−</button>
+          <div class="count" id="qty-extra">0</div>
+          <button id="plus-extra">+</button>
+          <span class="hint" id="hint-extra"></span>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- NOTA -->
+      <div class="slabel">Nota / Comentarios</div>
+      <textarea id="nota" placeholder="Alergias, indicaciones especiales…"></textarea>
+
+      <!-- DESGLOSE -->
+      <div class="info-box" id="desglose">
+        <div class="row"><span>Selecciona tipo, tamaño y toppings</span><span></span></div>
+      </div>
+
+      <div class="alert" id="alerta">⚠️ Selecciona tipo de helado y tamaño antes de imprimir.</div>
+
+      <button class="btn" onclick="generarTicket()">🖨️ Generar &amp; Imprimir Ticket</button>
+      <button class="btn btn-ghost" onclick="limpiarForm()" style="margin-top:8px;">✕ Limpiar orden</button>
+    </div>
+  </div>
+
+  <!-- ══ PREVIEW ══ -->
+  <div class="ticket-wrap">
+    <h3>Vista previa del ticket</h3>
+    <div class="folio-badge" id="folio-badge">📋 FOLIO #001</div>
+    <div id="ticket-preview">— El ticket aparecerá aquí —</div>
+  </div>
+
+</div>
+
+<div id="print-area" style="display:none"></div>
+
+<script>
+/* ════════════════════════════
+   PRECIOS BUZA
+   ════════════════════════════ */
+const P = {
+  base: { Chico: 75, Grande: 80 },
+  conTop: {
+    dulce: { Chico: 85,  Grande: 105 },
+    sano:  { Chico: 95,  Grande: 115 },
+  },
+  topIncluidos: {
+    dulce: { Chico: 2, Grande: 3 },
+    sano:  { Chico: 2, Grande: 2 },
+  },
+  extra: { dulce: 10, sano: 15 },
+};
+
+/* ── FOLIO ── */
+let folio = parseInt(localStorage.getItem('buza_folio') || '0') + 1;
+localStorage.setItem('buza_folio', folio);
+actualizarFolio();
+
+function actualizarFolio() {
+  document.getElementById('folio-badge').textContent =
+    '📋 FOLIO #' + String(folio).padStart(3, '0');
+}
+
+/* ── EVENTOS ── */
+document.querySelectorAll('input[name="tipo-top"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const v = r.value;
+    document.getElementById('sec-dulce').style.display   = v === 'dulce' ? 'block' : 'none';
+    document.getElementById('sec-sano').style.display    = v === 'sano'  ? 'block' : 'none';
+    document.getElementById('sec-qty-top').style.display = v !== 'sin'   ? 'block' : 'none';
+    document.getElementById('sec-extra').style.display   = v !== 'sin'   ? 'block' : 'none';
+    if (v !== 'sin') ajustarBase(v);
+    calcularPrecio();
+  });
+});
+
+document.querySelectorAll('input[name="tam"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const tt = document.querySelector('input[name="tipo-top"]:checked')?.value;
+    if (tt && tt !== 'sin') ajustarBase(tt);
+    calcularPrecio();
+  });
+});
+
+document.querySelectorAll('input[name="tipo"]').forEach(r => r.addEventListener('change', calcularPrecio));
+
+function ajustarBase(tipoTop) {
+  if (tipoTop === 'sin') return;
+  const tam = document.querySelector('input[name="tam"]:checked')?.value;
+  const inc = tam ? P.topIncluidos[tipoTop][tam] : 2;
+  document.getElementById('qty-top').textContent = inc;
+  document.getElementById('hint-extra').textContent = '+$' + P.extra[tipoTop] + ' c/u';
+}
+
+/* ── CONTADORES ── */
+function makeCounter(minId, plusId, cntId, min, max) {
+  const el = document.getElementById(cntId);
+  document.getElementById(minId).onclick = () => {
+    const v = parseInt(el.textContent);
+    if (v > min) el.textContent = v - 1;
+    calcularPrecio();
+  };
+  document.getElementById(plusId).onclick = () => {
+    const v = parseInt(el.textContent);
+    if (v < max) el.textContent = v + 1;
+    calcularPrecio();
+  };
+}
+makeCounter('minus-top',   'plus-top',   'qty-top',   1, 10);
+makeCounter('minus-extra', 'plus-extra', 'qty-extra', 0, 10);
+
+/* ── CALCULAR PRECIO ── */
+function calcularPrecio() {
+  const tipo    = document.querySelector('input[name="tipo"]:checked')?.value;
+  const tam     = document.querySelector('input[name="tam"]:checked')?.value;
+  const tipoTop = document.querySelector('input[name="tipo-top"]:checked')?.value;
+  const box     = document.getElementById('desglose');
+
+  if (!tipo || !tam) {
+    box.innerHTML = '<div class="row"><span>Selecciona tipo y tamaño para ver el precio</span></div>';
+    return 0;
+  }
+
+  const qtyExtra = parseInt(document.getElementById('qty-extra')?.textContent || '0');
+  let base, extraMonto = 0, baseLabel;
+
+  if (!tipoTop || tipoTop === 'sin') {
+    base = P.base[tam];
+    baseLabel = 'BUZA ' + tam + ' — Sin toppings';
+  } else {
+    base = P.conTop[tipoTop][tam];
+    const inc = P.topIncluidos[tipoTop][tam];
+    const tipNom = tipoTop === 'dulce' ? 'endulzados' : 'sin azúcar';
+    baseLabel = 'BUZA ' + tam + ' — ' + inc + ' toppings ' + tipNom;
+    extraMonto = qtyExtra * P.extra[tipoTop];
+  }
+
+  const total = base + extraMonto;
+  let html = '<div class="row"><span>' + baseLabel + '</span><span>$' + base + '.00</span></div>';
+  if (qtyExtra > 0) {
+    const tipNom = tipoTop === 'dulce' ? 'endulzados' : 'sin azúcar';
+    html += '<div class="row"><span>Extras ' + tipNom + ' (×' + qtyExtra + ')</span><span>+$' + extraMonto + '.00</span></div>';
+  }
+  html += '<div class="row total-row"><span>TOTAL</span><span>$' + total + '.00</span></div>';
+  box.innerHTML = html;
+  return total;
+}
+
+/* ── GENERAR TICKET ── */
+function generarTicket() {
+  const tipo    = document.querySelector('input[name="tipo"]:checked')?.value;
+  const tam     = document.querySelector('input[name="tam"]:checked')?.value;
+  const tipoTop = document.querySelector('input[name="tipo-top"]:checked')?.value;
+
+  if (!tipo || !tam) {
+    document.getElementById('alerta').style.display = 'block';
+    return;
+  }
+  document.getElementById('alerta').style.display = 'none';
+
+  const qtyTop   = parseInt(document.getElementById('qty-top')?.textContent || '0');
+  const qtyExtra = parseInt(document.getElementById('qty-extra')?.textContent || '0');
+  const nota     = document.getElementById('nota').value.trim();
+
+  let base = 0, extraMonto = 0;
+  if (!tipoTop || tipoTop === 'sin') {
+    base = P.base[tam];
+  } else {
+    base = P.conTop[tipoTop][tam];
+    extraMonto = qtyExtra * P.extra[tipoTop];
+  }
+  const total = base + extraMonto;
+
+  const now   = new Date();
+  const fecha = now.toLocaleDateString('es-MX');
+  const hora  = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  const folioStr = String(folio).padStart(3, '0');
+
+  const W = '================================';
+  const S = '--------------------------------';
+
+  let t = '';
+  t += '             BUZA\n';
+  t += '      GREEK FROZEN YOGURT\n';
+  t += W + '\n';
+  t += 'Folio: #' + folioStr + '  ' + fecha + ' ' + hora + '\n';
+  t += W + '\n';
+  t += 'Tipo  : ' + tipo + '\n';
+  t += 'Tamano: ' + tam + '\n';
+
+  if (!tipoTop || tipoTop === 'sin') {
+    t += 'Topping: Sin toppings\n';
+  } else {
+    const tipNom = tipoTop === 'dulce' ? 'Endulzados' : 'Sin azucar';
+    t += 'Topping: ' + tipNom + ' (' + qtyTop + ' inc.)\n';
+    if (qtyExtra > 0) {
+      t += S + '\n';
+      const pxe = P.extra[tipoTop];
+      t += 'Extra ' + (tipoTop === 'dulce' ? 'dulce' : 's/azucar') + ': ';
+      t += qtyExtra + ' x $' + pxe + ' = $' + (qtyExtra * pxe) + '.00\n';
+    }
+  }
+
+  if (nota) {
+    t += S + '\n';
+    t += 'Nota: ' + nota + '\n';
+  }
+
+  t += W + '\n';
+  t += 'TOTAL:          $' + total + '.00\n';
+  t += W + '\n';
+  t += '  Gracias por tu preferencia!\n';
+  t += '        Vuelve pronto!\n';
+  t += '\n\n\n';
+
+  document.getElementById('ticket-preview').textContent = t;
+
+  const ticketHtml = '<pre style="font-family:\'Courier New\',monospace;font-size:9pt;line-height:1.45;width:46mm;white-space:pre-wrap;word-break:break-word;">' + escHtml(t) + '</pre>';
+  // Ticket cliente + corte + ticket caja
+  const cajaLinea = '- - - COPIA CAJA - - -\n';
+  const tCaja = t.replace('GREEK FROZEN YOGURT\n', 'GREEK FROZEN YOGURT\n' + cajaLinea);
+  const cajaHtml = '<pre style="font-family:\'Courier New\',monospace;font-size:9pt;line-height:1.45;width:46mm;white-space:pre-wrap;word-break:break-word;">' + escHtml(tCaja) + '</pre>';
+  const area = document.getElementById('print-area');
+  area.innerHTML = ticketHtml + cajaHtml;
+  window.print();
+
+  folio++;
+  localStorage.setItem('buza_folio', folio);
+  setTimeout(actualizarFolio, 600);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ── LIMPIAR ── */
+function limpiarForm() {
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+  document.getElementById('qty-top').textContent   = '2';
+  document.getElementById('qty-extra').textContent = '0';
+  document.getElementById('nota').value = '';
+  ['sec-dulce','sec-sano','sec-qty-top','sec-extra','alerta'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('desglose').innerHTML =
+    '<div class="row"><span>Selecciona tipo, tamaño y toppings</span><span></span></div>';
+  document.getElementById('ticket-preview').textContent = '— El ticket aparecerá aquí —';
+}
+</script>
+</body>
+</html>
